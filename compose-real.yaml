@@ -1,0 +1,46 @@
+version: '3.9'
+networks:
+  app-net:
+    driver: bridge
+  ws-db-net:
+    driver: bridge
+
+services:
+  serv-sql-server:
+    image: mysql:latest
+    container_name: database
+    environment:
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_DATABASE: gestione_ticket
+    networks:
+      - ws-db-net
+  serv-ws-server:
+    image: node:latest
+    container_name: webservice
+    working_dir: /app
+    networks:
+      - ws-db-net
+    tty: true
+    volumes:
+      - ./ws-server:/app
+  serv-app-server:
+    image: nginx:latest
+    container_name: app
+    working_dir: /app
+    networks:
+      - app-net
+    tty: true
+    volumes:
+      - ./app-server:/app
+  serv-nginx:
+    image: nginx:latest
+    container_name: reverse-proxy
+    working_dir: /app
+    networks:
+      - app-net
+      - ws-db-net
+    ports:
+      - 443:443
+    tty: true
+    volumes:
+      - ./nginx:/app
